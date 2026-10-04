@@ -1,0 +1,733 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AI Video Builder</title>
+    <style>
+      :root {
+        --bg: #0b1020;
+        --bg-soft: #111827;
+        --panel: rgba(17, 24, 39, 0.9);
+        --panel-strong: rgba(15, 23, 42, 0.95);
+        --muted: #94a3b8;
+        --text: #e5eefb;
+        --primary: #8b5cf6;
+        --primary-2: #22d3ee;
+        --green: #22c55e;
+        --card: rgba(148, 163, 184, 0.08);
+        --border: rgba(148, 163, 184, 0.18);
+        --shadow: 0 30px 80px rgba(15, 23, 42, 0.5);
+      }
+
+      * { box-sizing: border-box; }
+
+      html { scroll-behavior: smooth; }
+
+      body {
+        margin: 0;
+        font-family: Inter, "Segoe UI", sans-serif;
+        background:
+          radial-gradient(circle at top left, rgba(139, 92, 246, 0.28), transparent 25%),
+          radial-gradient(circle at top right, rgba(34, 211, 238, 0.22), transparent 24%),
+          linear-gradient(180deg, #070d18 0%, #0b1020 100%);
+        color: var(--text);
+      }
+
+      a { color: inherit; text-decoration: none; }
+
+      img { max-width: 100%; display: block; }
+
+      .container {
+        width: min(1200px, calc(100vw - 32px));
+        margin: 0 auto;
+      }
+
+      .topbar {
+        position: sticky;
+        top: 0;
+        z-index: 10;
+        background: rgba(10, 15, 29, 0.72);
+        backdrop-filter: blur(18px);
+        border-bottom: 1px solid rgba(148, 163, 184, 0.12);
+      }
+
+      .topbar-inner {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        min-height: 72px;
+        gap: 24px;
+      }
+
+      .brand {
+        display: inline-flex;
+        align-items: center;
+        gap: 12px;
+        font-weight: 700;
+        letter-spacing: 0.02em;
+      }
+
+      .brand-badge {
+        width: 34px;
+        height: 34px;
+        border-radius: 12px;
+        background: linear-gradient(135deg, var(--primary), var(--primary-2));
+        display: grid;
+        place-items: center;
+        box-shadow: 0 12px 30px rgba(139, 92, 246, 0.5);
+      }
+
+      .brand-mark {
+        font-size: 14px;
+        font-weight: 800;
+      }
+
+      nav {
+        display: flex;
+        align-items: center;
+        gap: 18px;
+        color: var(--muted);
+        font-size: 0.95rem;
+      }
+
+      nav a:hover { color: var(--text); }
+
+      .nav-cta {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 18px;
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        background: rgba(255,255,255,0.02);
+        border-radius: 999px;
+        color: var(--text);
+      }
+
+      .hero {
+        padding: 48px 0 40px;
+      }
+
+      .hero-grid {
+        display: grid;
+        grid-template-columns: 1.15fr 0.85fr;
+        align-items: center;
+        gap: 20px;
+        min-height: 560px;
+      }
+
+      .eyebrow {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 12px;
+        border: 1px solid rgba(34, 211, 238, 0.35);
+        border-radius: 999px;
+        background: rgba(34, 211, 238, 0.08);
+        color: #bff6ff;
+        font-size: 0.8rem;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+
+      h1 {
+        font-size: clamp(2.8rem, 6vw, 5rem);
+        line-height: 0.96;
+        margin: 24px 0 18px;
+        letter-spacing: -0.05em;
+        max-width: 620px;
+      }
+
+      .gradient-text {
+        background: linear-gradient(135deg, #f5f5ff 0%, #90f0ff 25%, #c4b5fd 50%, #f9a8d4 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        color: transparent;
+      }
+
+      .hero-copy p {
+        max-width: 560px;
+        color: var(--muted);
+        font-size: 1.08rem;
+        line-height: 1.7;
+        margin: 0 0 28px;
+      }
+
+      .hero-actions {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        flex-wrap: wrap;
+      }
+
+      .button {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 48px;
+        padding: 0 20px;
+        border-radius: 14px;
+        border: 1px solid transparent;
+        font-weight: 600;
+        transition: transform 0.2s ease, opacity 0.2s ease, box-shadow 0.2s ease;
+      }
+
+      .button:hover { transform: translateY(-1px); }
+
+      .button.primary {
+        background: linear-gradient(135deg, var(--primary), #7c3aed);
+        color: white;
+        box-shadow: 0 20px 40px rgba(124, 58, 237, 0.4);
+      }
+
+      .button.secondary {
+        background: rgba(148, 163, 184, 0.06);
+        border-color: rgba(148,163,184,0.18);
+        color: var(--text);
+      }
+
+      .hero-meta {
+        display: flex;
+        align-items: center;
+        gap: 18px;
+        margin-top: 28px;
+        color: var(--muted);
+        flex-wrap: wrap;
+      }
+
+      .stars {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .stars .star {
+        color: #fbbf24;
+        letter-spacing: 1px;
+      }
+
+      .hero-visual {
+        position: relative;
+        height: 100%;
+        min-height: 520px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .main-card {
+        position: relative;
+        width: min(100%, 500px);
+        background: linear-gradient(180deg, rgba(15, 23, 42, 0.9), rgba(11, 15, 29, 0.9));
+        border: 1px solid rgba(148,163,184,0.12);
+        border-radius: 28px;
+        box-shadow: var(--shadow);
+        padding: 18px;
+      }
+
+      .screen-ui {
+        background: linear-gradient(180deg, rgba(15, 23, 42, 0.9), rgba(15, 23, 42, 0.7));
+        border: 1px solid rgba(148,163,184,0.12);
+        border-radius: 22px;
+        overflow: hidden;
+      }
+
+      .screen-top {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 14px 16px;
+        border-bottom: 1px solid rgba(148,163,184,0.12);
+        color: var(--muted);
+      }
+
+      .dots {
+        display: flex;
+        gap: 8px;
+      }
+
+      .dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+      }
+
+      .dot.red { background: #f87171; }
+      .dot.yellow { background: #fbbf24; }
+      .dot.green { background: #4ade80; }
+
+      .mock-video {
+        position: relative;
+        height: 390px;
+        padding: 18px;
+        background:
+          linear-gradient(135deg, rgba(34,211,238,0.15), rgba(124,58,237,0.18)),
+          radial-gradient(circle at 20% 20%, rgba(34,211,238,0.18), transparent 32%),
+          radial-gradient(circle at 80% 35%, rgba(124,58,237,0.2), transparent 32%),
+          #0f172a;
+        display: grid;
+        place-items: center;
+      }
+
+      .video-scene {
+        position: relative;
+        width: 100%;
+        height: 100%;
+        border-radius: 18px;
+        overflow: hidden;
+        background: linear-gradient(160deg, rgba(15,118,110,0.8), rgba(68, 64, 150, 0.9));
+        border: 1px solid rgba(148,163,184,0.15);
+      }
+
+      .sun {
+        position: absolute;
+        width: 110px;
+        height: 110px;
+        border-radius: 50%;
+        background: radial-gradient(circle, rgba(255,255,255,0.95), rgba(248,250,252,0.55), rgba(255,255,255,0.1));
+        top: 26px;
+        right: 56px;
+        box-shadow: 0 0 35px rgba(254, 240, 138, 0.7);
+      }
+
+      .mountain {
+        position: absolute;
+        bottom: 0;
+        width: 56%;
+        height: 42%;
+        background: linear-gradient(180deg, rgba(15, 23, 42, 0.6), rgba(15, 23, 42, 0.2));
+        clip-path: polygon(0 100%, 35% 36%, 62% 72%, 100% 100%);
+      }
+
+      .mountain.m2 {
+        left: 22%;
+        width: 58%;
+        height: 49%;
+      }
+
+      .mountain.m3 {
+        right: 0;
+        width: 44%;
+        height: 38%;
+      }
+
+      .lake {
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        height: 28%;
+        background: linear-gradient(180deg, rgba(34,211,238,0.4), rgba(14,116,144,0.9));
+      }
+
+      .badge-float {
+        position: absolute;
+        bottom: 18px;
+        left: 18px;
+        background: rgba(15, 23, 42, 0.8);
+        border: 1px solid rgba(148,163,184,0.18);
+        border-radius: 14px;
+        padding: 12px 14px;
+        backdrop-filter: blur(10px);
+      }
+
+      .badge-float strong {
+        display: block;
+        font-size: 1.15rem;
+        margin-top: 4px;
+      }
+
+      .stat-bubbles {
+        position: absolute;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        right: -18px;
+        top: 36px;
+      }
+
+      .mini-bubble {
+        background: rgba(17, 24, 39, 0.85);
+        border: 1px solid rgba(148,163,184,0.18);
+        border-radius: 14px;
+        padding: 10px 12px;
+        min-width: 150px;
+        box-shadow: 0 20px 35px rgba(2,6,23,0.42);
+      }
+
+      .mini-bubble small {
+        display: block;
+        color: var(--muted);
+        margin-bottom: 4px;
+      }
+
+      .mini-bubble strong {
+        font-size: 1.1rem;
+      }
+
+      .logos {
+        padding: 28px 0 16px;
+      }
+
+      .logos-bar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 18px;
+        color: rgba(148,163,184,0.9);
+        text-transform: uppercase;
+        letter-spacing: 0.12em;
+        font-size: 0.78rem;
+        padding: 18px 16px;
+        border: 1px solid rgba(148,163,184,0.12);
+        border-radius: 16px;
+        background: rgba(15, 23, 42, 0.32);
+      }
+
+      .metrics {
+        padding: 48px 0 12px;
+      }
+
+      .metrics-grid {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 18px;
+      }
+
+      .metric-card {
+        background: rgba(15, 23, 42, 0.55);
+        border: 1px solid rgba(148,163,184,0.12);
+        border-radius: 18px;
+        padding: 22px 20px;
+      }
+
+      .metric-card h3 {
+        margin: 0 0 10px;
+        font-size: clamp(2rem, 2.6vw, 2.8rem);
+        letter-spacing: -0.06em;
+      }
+
+      .metric-card p {
+        margin: 0;
+        color: var(--muted);
+        line-height: 1.6;
+      }
+
+      .features {
+        padding: 42px 0 80px;
+      }
+
+      .section-head {
+        display: flex;
+        align-items: end;
+        justify-content: space-between;
+        gap: 16px;
+        margin-bottom: 28px;
+      }
+
+      .section-head h2 {
+        margin: 0;
+        font-size: clamp(2.2rem, 4vw, 3.4rem);
+        letter-spacing: -0.06em;
+      }
+
+      .section-head p {
+        margin: 0;
+        max-width: 480px;
+        color: var(--muted);
+        line-height: 1.7;
+      }
+
+      .feature-grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 18px;
+      }
+
+      .feature-card {
+        background: rgba(15, 23, 42, 0.58);
+        border: 1px solid rgba(148,163,184,0.12);
+        border-radius: 20px;
+        padding: 22px 20px;
+      }
+
+      .feature-icon {
+        width: 48px;
+        height: 48px;
+        border-radius: 14px;
+        display: grid;
+        place-items: center;
+        background: linear-gradient(135deg, rgba(139,92,246,0.25), rgba(34,211,238,0.18));
+        border: 1px solid rgba(168, 85, 247, 0.25);
+        font-size: 1.3rem;
+        margin-bottom: 18px;
+      }
+
+      .feature-card h3 {
+        margin: 0 0 10px;
+        font-size: 1.35rem;
+      }
+
+      .feature-card p {
+        margin: 0;
+        color: var(--muted);
+        line-height: 1.7;
+      }
+
+      .cta-strip {
+        padding: 18px 0 80px;
+      }
+
+      .cta-panel {
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 18px;
+        flex-wrap: wrap;
+        padding: 28px 24px;
+        border-radius: 24px;
+        background: linear-gradient(135deg, rgba(139,92,246,0.2), rgba(34,211,238,0.12));
+        border: 1px solid rgba(148,163,184,0.14);
+        overflow: hidden;
+      }
+
+      .cta-panel::before {
+        content: "";
+        position: absolute;
+        inset: -20% -10% auto auto;
+        width: 240px;
+        height: 240px;
+        background: radial-gradient(circle, rgba(168,85,247,0.32), transparent 60%);
+      }
+
+      .cta-panel h3 {
+        margin: 0;
+        position: relative;
+        z-index: 1;
+        font-size: clamp(1.8rem, 4vw, 2.8rem);
+        letter-spacing: -0.05em;
+      }
+
+      .cta-panel .button {
+        position: relative;
+        z-index: 1;
+      }
+
+      @media (max-width: 980px) {
+        .hero-grid,
+        .feature-grid,
+        .metrics-grid {
+          grid-template-columns: 1fr 1fr;
+        }
+
+        .hero-grid {
+          grid-template-columns: 1fr;
+        }
+
+        .hero-copy {
+          order: 1;
+        }
+
+        .hero-visual {
+          order: 0;
+          min-height: 480px;
+        }
+      }
+
+      @media (max-width: 720px) {
+        nav {
+          display: none;
+        }
+
+        .hero {
+          padding-top: 24px;
+        }
+
+        .feature-grid,
+        .metrics-grid {
+          grid-template-columns: 1fr;
+        }
+
+        .section-head {
+          flex-direction: column;
+          align-items: flex-start;
+        }
+
+        .cta-panel {
+          align-items: flex-start;
+          flex-direction: column;
+        }
+
+        .screen-top {
+          padding: 12px 14px;
+        }
+
+        .mock-video {
+          height: 310px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <header class="topbar">
+      <div class="container topbar-inner">
+        <a href="#" class="brand" aria-label="AI Video Builder home">
+          <span class="brand-badge"><span class="brand-mark">AI</span></span>
+          <span>VideoBuilder</span>
+        </a>
+
+        <nav aria-label="Main navigation">
+          <a href="#features">Features</a>
+          <a href="#workflow">Workflow</a>
+          <a href="#pricing">Pricing</a>
+          <a href="#resources">Resources</a>
+          <a href="#" class="nav-cta">Launch app</a>
+        </nav>
+      </div>
+    </header>
+
+    <main>
+      <section class="hero">
+        <div class="container hero-grid">
+          <div class="hero-copy">
+            <span class="eyebrow">AI video studio</span>
+            <h1>
+              Create high-impact video in<br>
+              <span class="gradient-text">seconds, not weeks.</span>
+            </h1>
+            <p>
+              Turn ideas into cinematic scenes, product videos, and ad creatives with AI-powered scripting,
+              voiceovers, editing, and rendering — all in one workspace built for teams and solo creators.
+            </p>
+
+            <div class="hero-actions">
+              <a href="#" class="button primary">Start creating free</a>
+              <a href="#features" class="button secondary">See demo</a>
+            </div>
+
+            <div class="hero-meta">
+              <div class="stars" aria-label="Rated 4.9 out of 5">
+                <span class="star">★★★★★</span>
+                <span>4.9/5 from 3,000+ creators</span>
+              </div>
+              <span>Trusted by teams at</span>
+            </div>
+          </div>
+
+          <div class="hero-visual" aria-label="AI video preview panel">
+            <div class="main-card">
+              <div class="screen-ui">
+                <div class="screen-top">
+                  <div class="dots" aria-hidden="true">
+                    <span class="dot red"></span>
+                    <span class="dot yellow"></span>
+                    <span class="dot green"></span>
+                  </div>
+                  <span>AI render • 4K</span>
+                </div>
+
+                <div class="mock-video">
+                  <div class="video-scene">
+                    <div class="sun"></div>
+                    <div class="mountain"></div>
+                    <div class="mountain m2"></div>
+                    <div class="mountain m3"></div>
+                    <div class="lake"></div>
+                  </div>
+
+                  <div class="badge-float">
+                    <span>Prompt</span>
+                    <strong>“Cinematic launch ad”</strong>
+                  </div>
+
+                  <div class="stat-bubbles">
+                    <div class="mini-bubble">
+                      <small>Render time</small>
+                      <strong>2m 14s</strong>
+                    </div>
+                    <div class="mini-bubble">
+                      <small>Shots</small>
+                      <strong>18 scenes</strong>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="logos" aria-label="Customer logos">
+        <div class="container logos-bar">
+          <span>Notion</span>
+          <span>Figma</span>
+          <span>Stripe</span>
+          <span>Shopify</span>
+          <span>Dropbox</span>
+        </div>
+      </section>
+
+      <section class="metrics" id="workflow">
+        <div class="container metrics-grid">
+          <article class="metric-card">
+            <h3>2x faster</h3>
+            <p>Move from brief to finalized video in a fraction of the time with AI-assisted editing and generation.</p>
+          </article>
+          <article class="metric-card">
+            <h3>50+</h3>
+            <p>Prebuilt templates, scene styles, narrator voices, and motion presets to match any campaign.</p>
+          </article>
+          <article class="metric-card">
+            <h3>4K</h3>
+            <p>High-resolution exports tuned for social, web, and paid media with brand-safe consistency.</p>
+          </article>
+          <article class="metric-card">
+            <h3>96%</h3>
+            <p>Teams report more polished creative output with fewer revisions and less manual editing overhead.</p>
+          </article>
+        </div>
+      </section>
+
+      <section class="features" id="features">
+        <div class="container">
+          <div class="section-head">
+            <h2>Everything you need to make video at scale.</h2>
+            <p>Generate scripts, scenes, and voiceovers from a prompt, then iterate with live edits and AI storyboarding tools.</p>
+          </div>
+
+          <div class="feature-grid">
+            <article class="feature-card">
+              <div class="feature-icon">✦</div>
+              <h3>Prompt-to-video</h3>
+              <p>Turn a single idea or product brief into a full video sequence with scene planning, transitions, and visuals.</p>
+            </article>
+
+            <article class="feature-card">
+              <div class="feature-icon">◌</div>
+              <h3>Brand consistency</h3>
+              <p>Keep logos, colors, text, and product framing aligned across all generated video layers and templates.</p>
+            </article>
+
+            <article class="feature-card">
+              <div class="feature-icon">⚡</div>
+              <h3>Instant iteration</h3>
+              <p>Refine motion, pacing, and voice tone in real time with direct editing controls and AI suggestions.</p>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <section class="cta-strip" id="pricing">
+        <div class="container">
+          <div class="cta-panel">
+            <h3>Build your next campaign in minutes.</h3>
+            <a href="#" class="button primary">Try AI Video Builder</a>
+          </div>
+        </div>
+      </section>
+    </main>
+  </body>
+</html>
